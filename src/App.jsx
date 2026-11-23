@@ -591,7 +591,7 @@ function Landing({ onRegister, onStaff, canResume, onResume }) {
             <div className="enquiry-form-heading">
               <div>
                 <span>ADMISSIONS 2026–27</span>
-                <h3>Apply for Admissions</h3>
+                <h3>Admissions Inquiry</h3>
                 <p>Enter your details to register your enquiry.</p>
               </div>
             </div>
@@ -859,374 +859,32 @@ function Completion({ student, onHome, onStaff }) {
   return <div className="center-page"><div className="confirmation-card"><div className="success-icon"><CheckCircle2 size={32}/></div><div className="eyebrow">ADMISSION CONFIRMED</div><h1>Welcome to Sahyadri, {student.name.split(" ")[0]}!</h1><p>Your fee has been confirmed by the admission office. Your admission number has been generated.</p><div className="admission-number"><span>YOUR ADMISSION NUMBER</span><strong>{student.admissionNumber}</strong></div><div className="summary-box"><div><span>Course</span><strong>{student.course}</strong></div><div><span>Payment method</span><strong>{student.paymentMode}</strong></div><div><span>Payment status</span><strong><Status>Confirmed</Status></strong></div></div><div className="demo-note"><AlertCircle size={16}/> Prototype confirmation only. This is not an official admission letter.</div><button className="btn primary full-btn" onClick={onHome}>Back to admission portal</button><button className="text-button" onClick={onStaff}>View staff dashboard</button></div></div>;
 }
 
-
-function StaffDashboard({
-  students, tab, setTab, search, setSearch, filter, setFilter,
-  filtered, onHome, onOpen, onReset
-}) {
-  const total = students.length;
-  const submitted = students.filter(s => s.submitted).length;
+function StaffDashboard({ students, tab, setTab, search, setSearch, filter, setFilter, filtered, onHome, onOpen, onConfirm, onReset, onShowConfirmation }) {
+  const total = students.length, submitted = students.filter(s => s.submitted).length;
+  const pending = students.filter(s => s.paymentStatus !== "Confirmed").length;
   const confirmed = students.filter(s => s.paymentStatus === "Confirmed").length;
-  const pending = students.filter(
-    s => s.submitted && s.paymentStatus !== "Confirmed"
-  ).length;
-
   const [dateLabel, setDateLabel] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     setDateLabel(today());
   }, []);
-
-  const navigation = [
-    { name: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
-    { name: "All applications", icon: Users, group: "WORKSPACE" },
-    { name: "Payment verification", icon: Wallet, group: "WORKSPACE" },
-    { name: "Reports", icon: Activity, group: "MANAGEMENT" },
-  ];
-
-  const paymentRecords = students.filter(s => s.submitted);
-  const currentTitle = tab === "All applications"
-    ? "Applications"
-    : tab === "Payment verification"
-      ? "Payment verification"
-      : tab;
-
-  return (
-    <div className={`erp-layout ${sidebarOpen ? "" : "sidebar-collapsed"}`}>
-
-      <aside className="erp-sidebar">
-        <div className="erp-brand">
-          <Logo />
-          <div>
-            <strong>Admissions</strong>
-            <span>MANAGEMENT PORTAL</span>
-          </div>
-        </div>
-
-        <div className="erp-sidebar-content">
-          <div className="erp-sidebar-caption">MAIN MENU</div>
-
-          {navigation.map((item, index) => (
-            <React.Fragment key={item.name}>
-              {(index === 0 || navigation[index - 1].group !== item.group) &&
-                <div className="erp-menu-heading">{item.group}</div>
-              }
-
-              <button
-                className={`erp-nav-item ${tab === item.name ? "active" : ""}`}
-                onClick={() => setTab(item.name)}
-              >
-                <item.icon size={18} strokeWidth={1.8} />
-                <span>{item.name}</span>
-                {item.name === "Payment verification" && pending > 0 &&
-                  <small>{pending}</small>
-                }
-              </button>
-            </React.Fragment>
-          ))}
-        </div>
-
-        <div className="erp-sidebar-bottom">
-          <div className="erp-user">
-            <div className="erp-avatar">AO</div>
-            <div>
-              <strong>Admission Officer</strong>
-              <span>Administrator</span>
-            </div>
-          </div>
-
-          <button className="erp-exit" onClick={onHome}>
-            <LogOut size={17} />
-            <span>Exit dashboard</span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="erp-main">
-
-        <header className="erp-topbar">
-          <div className="erp-topbar-left">
-            <button
-              className="erp-menu-toggle"
-              onClick={() => setSidebarOpen(v => !v)}
-              aria-label="Toggle sidebar"
-            >
-              <Menu size={19} />
-            </button>
-
-            <div className="erp-breadcrumb">
-              <span>Admissions</span>
-              <span>/</span>
-              <strong>{currentTitle}</strong>
-            </div>
-          </div>
-
-          <div className="erp-topbar-right">
-            <span className="erp-academic-year">2026–27</span>
-            <button
-              className="erp-reset"
-              onClick={onReset}
-              title="Reset demonstration data"
-            >
-              <RefreshCw size={15} />
-              Reset demo
-            </button>
-            <div className="erp-profile">
-              <div className="erp-avatar">AO</div>
-              <div>
-                <strong>Admission Officer</strong>
-                <span>Admissions Office</span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="erp-content">
-
-          <div className="erp-page-heading">
-            <div>
-              <h1>{currentTitle}</h1>
-              <p>
-                {tab === "Overview"
-                  ? "Monitor registrations, application progress and fee confirmations."
-                  : tab === "All applications"
-                    ? "Review and manage student admission applications."
-                    : tab === "Payment verification"
-                      ? "Verify student payments and generate admission numbers."
-                      : "Review admission statistics and reports."}
-              </p>
-            </div>
-            <span className="erp-date">
-              <Clock3 size={15} /> {dateLabel}
-            </span>
-          </div>
-
-          {tab === "Overview" && (
-            <>
-              <div className="erp-stat-grid">
-                <div className="erp-stat-card">
-                  <div className="erp-stat-top">
-                    <span>Total registrations</span>
-                    <Users />
-                  </div>
-                  <strong>{total}</strong>
-                  <small>All registered candidates</small>
-                </div>
-
-                <div className="erp-stat-card">
-                  <div className="erp-stat-top">
-                    <span>Applications submitted</span>
-                    <FileCheck2 />
-                  </div>
-                  <strong>{submitted}</strong>
-                  <small>{total ? Math.round(submitted / total * 100) : 0}% of registrations</small>
-                </div>
-
-                <div className="erp-stat-card">
-                  <div className="erp-stat-top">
-                    <span>Pending fee verification</span>
-                    <Clock3 />
-                  </div>
-                  <strong>{pending}</strong>
-                  <small>Requires officer action</small>
-                </div>
-
-                <div className="erp-stat-card">
-                  <div className="erp-stat-top">
-                    <span>Admissions confirmed</span>
-                    <GraduationCap />
-                  </div>
-                  <strong>{confirmed}</strong>
-                  <small>Admission numbers generated</small>
-                </div>
-              </div>
-
-              <div className="erp-dashboard-grid">
-                <section className="erp-panel">
-                  <div className="erp-panel-heading">
-                    <div>
-                      <h2>Recent applications</h2>
-                      <p>Latest registered candidates</p>
-                    </div>
-                    <button onClick={() => setTab("All applications")}>
-                      View all <ArrowRight size={15} />
-                    </button>
-                  </div>
-
-                  <StudentTable
-                    students={students.slice(0, 5)}
-                    onOpen={onOpen}
-                  />
-                </section>
-
-                <section className="erp-panel erp-route-panel">
-                  <div className="erp-panel-heading">
-                    <div>
-                      <h2>Admission routes</h2>
-                      <p>Applications by admission category</p>
-                    </div>
-                  </div>
-
-                  {routes.map(route => {
-                    const count = students.filter(s => s.route === route).length;
-                    const percentage = total
-                      ? Math.round(count / total * 100)
-                      : 0;
-
-                    return (
-                      <div className="erp-route-row" key={route}>
-                        <div>
-                          <span>{route}</span>
-                          <strong>{count}</strong>
-                        </div>
-                        <div className="erp-route-track">
-                          <div style={{ width: `${percentage}%` }} />
-                        </div>
-                        <small>{percentage}% of registrations</small>
-                      </div>
-                    );
-                  })}
-                </section>
-              </div>
-
-              <section className="erp-panel erp-summary-panel">
-                <div className="erp-panel-heading">
-                  <div>
-                    <h2>Admission workflow</h2>
-                    <p>Current status of candidates</p>
-                  </div>
-                </div>
-
-                <div className="erp-workflow-grid">
-                  {[
-                    ["Registered", students.filter(s => s.status === "Registered").length],
-                    ["In progress", students.filter(s => s.status === "Application in progress").length],
-                    ["Submitted", submitted],
-                    ["Fee confirmed", confirmed],
-                  ].map(([label, value]) => (
-                    <div key={label}>
-                      <strong>{value}</strong>
-                      <span>{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            </>
-          )}
-
-          {tab === "All applications" && (
-            <section className="erp-panel">
-              <div className="erp-panel-heading">
-                <div>
-                  <h2>Student applications</h2>
-                  <p>Search, filter and review candidate records.</p>
-                </div>
-                <span className="erp-record-count">
-                  {filtered.length} records
-                </span>
-              </div>
-
-              <div className="erp-toolbar">
-                <div className="erp-search">
-                  <Search size={17} />
-                  <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search by name, email, phone or ID"
-                  />
-                </div>
-
-                <select
-                  value={filter}
-                  onChange={e => setFilter(e.target.value)}
-                >
-                  <option value="All">All statuses</option>
-                  <option value="Registered">Registered</option>
-                  <option value="Application in progress">In progress</option>
-                  <option value="Submitted">Submitted</option>
-                  <option value="Payment pending">Payment pending</option>
-                  <option value="Fee confirmation pending">Fee confirmation pending</option>
-                  <option value="Fee confirmed">Fee confirmed</option>
-                </select>
-              </div>
-
-              <StudentTable
-                students={filtered}
-                onOpen={onOpen}
-                detailed
-              />
-            </section>
-          )}
-
-          {tab === "Payment verification" && (
-            <section className="erp-panel">
-              <div className="erp-panel-heading">
-                <div>
-                  <h2>Payment verification</h2>
-                  <p>
-                    Review submitted applications and confirm fees after
-                    checking the payment details.
-                  </p>
-                </div>
-                <span className="erp-record-count">
-                  {paymentRecords.length} applications
-                </span>
-              </div>
-
-              <StudentTable
-                students={paymentRecords}
-                onOpen={onOpen}
-                payment
-              />
-            </section>
-          )}
-
-          {tab === "Reports" && (
-            <div className="erp-report-grid">
-              <section className="erp-panel">
-                <h2>Admission summary</h2>
-                <div className="erp-report-total">{total}</div>
-                <p>Total registrations</p>
-                <div className="erp-report-line">
-                  <span>Applications submitted</span>
-                  <strong>{submitted}</strong>
-                </div>
-                <div className="erp-report-line">
-                  <span>Fee confirmed</span>
-                  <strong>{confirmed}</strong>
-                </div>
-                <div className="erp-report-line">
-                  <span>Awaiting verification</span>
-                  <strong>{pending}</strong>
-                </div>
-              </section>
-
-              <section className="erp-panel">
-                <h2>Route-wise applications</h2>
-                {routes.map(route => (
-                  <div className="erp-report-line" key={route}>
-                    <span>{route}</span>
-                    <strong>
-                      {students.filter(s => s.route === route).length}
-                    </strong>
-                  </div>
-                ))}
-              </section>
-            </div>
-          )}
-
-          <footer className="erp-footer">
-            Sahyadri College of Engineering & Management · Admissions Office
-            <span>Demonstration environment · {dateLabel}</span>
-          </footer>
-        </div>
-      </main>
-    </div>
-  );
+  const nav = [{name:"Overview",icon:LayoutDashboard},{name:"All applications",icon:Users},{name:"Payment verification",icon:Wallet},{name:"Reports",icon:Activity}];
+  return <div className="staff-layout">
+    <aside className="staff-sidebar"><div className="staff-brand"><Logo light/><span className="staff-label">ADMISSIONS OFFICE</span></div><div className="staff-nav-label">WORKSPACE</div>{nav.map(n=><button key={n.name} className={`staff-nav ${tab===n.name?"active":""}`} onClick={() => setTab(n.name)}><n.icon size={18}/>{n.name}</button>)}<div className="staff-sidebar-bottom"><div className="staff-profile"><div className="avatar">AO</div><div><strong>Admission Officer</strong><span>Staff workspace</span></div></div><button className="staff-nav" onClick={onHome}><LogOut size={17}/> Exit dashboard</button></div></aside>
+    <main className="staff-main"><header className="staff-topbar"><div><div className="eyebrow">SAHYADRI · ADMISSIONS 2026–27</div><h1>{tab}</h1></div><div className="staff-top-actions"><button className="btn secondary reset-btn" onClick={onReset}><RefreshCw size={14}/> Reset demo</button><button className="icon-btn"><Bell size={18}/><i/></button><div className="avatar">AO</div></div></header>
+      {tab==="Overview" && <><div className="welcome-row"><div><h2>Good afternoon, Admission Team</h2><p>Here's what's happening with B.E. admissions today.</p></div><span className="date-chip">{dateLabel}</span></div><div className="stats-grid">
+        <Stat icon={Users} label="Total registrations" value={total} change="All registered candidates" tone="blue"/>
+        <Stat icon={FileCheck2} label="Applications submitted" value={submitted} change={`${total ? Math.round(submitted/total*100) : 0}% of registrations`} tone="purple"/>
+        <Stat icon={Clock3} label="Fees awaiting confirmation" value={pending} change="Requires officer action" tone="amber"/>
+        <Stat icon={GraduationCap} label="Admissions confirmed" value={confirmed} change="Admission number generated" tone="green"/>
+      </div><div className="dashboard-grid"><div className="panel"><div className="panel-heading"><div><h3>Recent applicants</h3><p>Latest student activity</p></div><button className="text-button" onClick={() => setTab("All applications")}>View all <ArrowRight size={14}/></button></div><StudentTable students={students.slice(0,5)} onOpen={onOpen}/></div><div className="panel route-panel"><div className="panel-heading"><div><h3>Applications by route</h3><p>Admission channel breakdown</p></div></div>{routes.map(r=>{const count=students.filter(s=>s.route===r).length;return <div className="route-stat" key={r}><div><span>{r}</span><strong>{count}</strong></div><Progress value={total?count/total*100:0}/></div>})}</div></div></>}
+      {tab==="All applications" && <div className="panel table-panel"><div className="panel-heading"><div><h3>Student applications</h3><p>Track every candidate from registration to admission confirmation.</p></div><span className="count-chip">{filtered.length} records</span></div><div className="table-toolbar"><div className="search-box"><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, ID, email or phone"/></div><select value={filter} onChange={e=>setFilter(e.target.value)}><option>All</option><option>Registered</option><option>Application in progress</option><option>Submitted</option><option>Payment pending</option><option>Fee confirmation pending</option><option>Fee confirmed</option><option>Confirmed</option><option>Pending</option></select></div><StudentTable students={filtered} onOpen={onOpen} detailed/></div>}
+      {tab==="Payment verification" && <div className="panel table-panel"><div className="panel-heading"><div><h3>Fee payment verification</h3><p>Confirm payments only after checking the payment receipt / transaction details.</p></div></div><StudentTable students={students.filter(s=>s.submitted)} onOpen={onOpen} payment/></div>}
+      {tab==="Reports" && <div className="report-grid"><div className="panel"><h3>Admission summary</h3><div className="report-number">{total}</div><p>Total registered candidates</p><div className="report-line"><span>Submitted applications</span><strong>{submitted}</strong></div><div className="report-line"><span>Fee confirmed</span><strong>{confirmed}</strong></div><div className="report-line"><span>Pending fee confirmation</span><strong>{pending}</strong></div></div><div className="panel"><h3>Route-wise summary</h3>{routes.map(r=><div className="report-line" key={r}><span>{r}</span><strong>{students.filter(s=>s.route===r).length}</strong></div>)}</div></div>}
+      <div className="staff-disclaimer"><AlertCircle size={15}/> Demonstration dashboard · Data is stored in this browser only. No real student records are connected.</div>
+    </main>
+  </div>;
 }
-
-
 function Stat({icon:Icon,label,value,change,tone}) { return <div className="stat-card"><div className={`stat-icon ${tone}`}><Icon size={19}/></div><span>{label}</span><strong>{value}</strong><small>{change}</small></div>; }
 function StudentTable({ students, onOpen, detailed=false, payment=false }) {
   if (!students.length) return <div className="empty-state"><Users size={28}/><strong>No applications found</strong><span>Try changing your search or filter.</span></div>;
